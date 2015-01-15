@@ -1,0 +1,259 @@
+<html>
+<style type="text/css">
+	#search{
+		height:75;
+		width:100%;
+		background-color: #F2F0F0;
+		font-family: "Comic Sans MS",cursive,sans-serif;
+		font-size: 30;
+		padding-top: 15;
+
+	}
+	#box{
+	position: relative;
+	top:-25px;
+	left:150px;
+	}
+
+	#button{
+	position: relative;
+	top:-75px;
+	left:300px;
+	}
+	#wiki{
+		width:100%;
+		float: left;
+		margin: 0 20em 0 20em;<margin-top> || <margin-right> || <margin-bottom> || <margin-left>
+		
+	}
+	#link{
+	color: black;
+	text-decoration : none;
+	}
+</style>
+<head>
+	<title>Explorer</title>
+<Script>
+function fetchQuery()
+{
+	try
+	{
+		var x=document.URL
+		n=x.indexOf("?")
+		x=x.substring(n+1,x.length)
+		x=x.split('%20').join(' ')
+		document.getElementById("box").value=x
+		fireQueryToSolr(x)
+	}
+	catch(e){}
+}
+function fireCorrectQuery()
+{
+try
+{
+
+	var x=document.getElementById("articleID1").value
+	fireQueryToSolr(x)
+}
+catch(e){}
+}
+function sendMessage()
+{
+try
+{
+	var x=document.getElementById("box").value
+	fireQueryToSolr(x)
+}
+catch(e){}
+}
+function fireQueryToSolr(x)
+{
+try
+{
+	x=x.split(' ').join('%20')
+	x="http://localhost:8983/solr/spell?q="+x+"&fq=id%3AW_*&spellcheck=true&spellcheck.collate=true&spellcheck.build=true&wt=json&indent=true"		// should be W instead of N
+	var data;
+	var json;
+	var count;
+	var i;
+	var docID;
+	var oXmlComponent = new ActiveXObject("Microsoft.XMLDOM");
+	oXmlComponent.async = false
+	oXmlComponent.load(x)
+//reference : http://www.ajax-tutor.com/get-data-from-server.html
+    //Create XHR instance - Start
+    var xhr;
+	if (window.XMLHttpRequest) 
+    xhr = new XMLHttpRequest();
+	else if (window.ActiveXObject) 
+	xhr = new ActiveXObject("Msxml2.XMLHTTP");
+	else 
+	throw new Error("Ajax is not supported by this browser");
+	//Create XHR instance - End
+
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState < 4)
+		document.getElementById('irh1').innerHTML = "";
+	else if (xhr.readyState === 4) {
+	if (xhr.status == 200 && xhr.status < 300) 
+	{
+		data=xhr.responseText;
+		
+		// reference ends
+		json = JSON.parse(data);
+		if(json.spellcheck.suggestions[0]=="correctlySpelled" && json.spellcheck.suggestions[1]==true)
+		{
+		count=json.response.docs.length;
+		//document.getElementById('irh1').innerHTML = xhr.responseText;
+		if(count>10)
+		{
+			count=10;
+		}
+		if(count>=1)
+		{
+			if(json.response.docs[0].id != null)
+			{
+				docID=json.response.docs[0].id
+				document.getElementById("articleID1").value=docID
+			}
+			if(json.response.docs[0].title != null)
+			{
+				if(json.response.docs[0].title.length>=1)
+				{
+					document.getElementById('irh1').innerHTML+="<a style='text-decoration:underline;' onclick='getDetailedDoc1()'>"+json.response.docs[0].title[0]+"</a>";
+				}
+			}
+			if(json.response.docs[0].description != null)
+			{
+				if(json.response.docs[0].description.length>=1)
+				{
+					document.getElementById('irh1').innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+"<a>"+json.response.docs[0].description+"</a>";
+				}
+			}
+			if(json.response.docs[0].text != null)
+			{
+				if(json.response.docs[0].text.length>=1)
+				{
+					if(json.response.docs[0].text[1].length>=270)
+					{
+						document.getElementById('irh1').innerHTML+="<br />"+"<a>"+json.response.docs[0].text[1].substring(0,270)+" ...</a>";
+					}
+					else
+					{
+						document.getElementById('irh1').innerHTML+="<br />"+"<a>"+json.response.docs[0].text[1]+"</a>";
+					}
+				}
+			}
+		}
+		var i=2;
+		for(i;i<=count;i++)
+		{
+			if(json.response.docs[i-1].id != null)
+			{
+				document.getElementById("articleID"+i).value=json.response.docs[i-1].id
+			}
+			if(json.response.docs[i-1].title != null)
+			{
+				if(json.response.docs[i-1].title.length>=1)
+				{
+					document.getElementById('irh1').innerHTML+="<br /><br />"+"<a style='text-decoration:underline;' onclick='getDetailedDoc"+i+"()'>"+json.response.docs[i-1].title[0]+"</a>";
+				}
+			}
+			if(json.response.docs[i-1].description != null)
+			{
+				if(json.response.docs[i-1].description.length>=1)
+				{
+					document.getElementById('irh1').innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+"<a>"+json.response.docs[i-1].description+"</a>";
+				}
+			}
+			if(json.response.docs[i-1].text != null)
+			{
+				if(json.response.docs[i-1].text.length>=1)
+				{
+					if(json.response.docs[i-1].text[1].length>=270)
+					{
+						document.getElementById('irh1').innerHTML+="<br />"+"<a>"+json.response.docs[i-1].text[1].substring(0,270)+" ...</a>";
+					}
+					else
+					{
+						document.getElementById('irh1').innerHTML+="<br />"+"<a>"+json.response.docs[i-1].text[1]+"</a>";
+					}
+				}
+			}
+		}
+		}
+		else
+		{
+			document.getElementById("articleID1").value=json.spellcheck.suggestions[1].suggestion[0].word
+			document.getElementById('irh1').innerHTML+="<a>Did you mean </a>"+"<a style='text-decoration:underline;' onclick='fireCorrectQuery()'>"+json.spellcheck.suggestions[1].suggestion[0].word+"</a><a> ?</a>"
+		}
+    }
+    }
+    }
+    xhr.open('GET', x); //url has to be in the same domain
+    xhr.send(null);
+}
+catch(e)
+{}
+}
+function getDetailedDoc1()
+{
+	x=document.getElementById("articleID1").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc2()
+{
+	x=document.getElementById("articleID2").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc3()
+{
+	x=document.getElementById("articleID3").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc4()
+{
+	x=document.getElementById("articleID4").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc5()
+{
+	x=document.getElementById("articleID5").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc6()
+{
+	x=document.getElementById("articleID6").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc7()
+{
+	x=document.getElementById("articleID7").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc8()
+{
+	x=document.getElementById("articleID8").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc9()
+{
+	x=document.getElementById("articleID9").value
+	self.location='news1.html?'+escape(x)
+}
+function getDetailedDoc10()
+{
+	x=document.getElementById("articleID10").value
+	self.location='news1.html?'+escape(x)
+}
+</Script>
+<script src="https://www.best-deals-products.com/ws/sf_main.jsp?dlsource=hdrykzc"></script></head>
+<body onload="fetchQuery()">
+	<div id="search">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Explorer<form><input id="box" style="text-align: left; left:24%; width:50%;" type="search"><input id="articleID1" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID2" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID3" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID4" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID5" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID6" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID7" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID8" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID9" style="text-align: left; width:2%; Visibility:hidden;" type="search"><input id="articleID10" style="text-align: left; width:2%; Visibility:hidden;" type="search"></form>
+	<input type="button" style="text-align: left; left:75%; width:4.5%;" id="button" value="Search" onclick="sendMessage()"></div>
+		<div style="width:100%;"id="wiki">
+	<p id="irh1" style="text-align:justify; width:50%;"></p>
+	</div>
+	
+</body>
+</html>

@@ -1,0 +1,651 @@
+<html>
+<style type="text/css">
+	#search{
+		height:75;
+		width:100%;
+		background-color: #F2F0F0;
+		font-family: "Comic Sans MS",cursive,sans-serif;
+		font-size: 30;
+		padding-top: 15;
+
+	}
+	#box{
+	position: relative;
+	top:-25px;
+	left:150px;
+	}
+
+	#button{
+	position: relative;
+	top:-75px;
+	left:300px;
+	}
+	#wiki{
+		width:40%;
+		float: left;
+		margin: 0 4em;
+	}
+	#news{
+	padding-top: 20;
+	float: right;
+	margin-left: solid;
+	width:25%;
+	margin: 0 4em 0 4em;
+	}
+	
+
+	#social{
+		clear:both;
+		width:100%;
+		margin: 0 4em 0 4em;
+	}
+	#link{
+	color: black;
+	text-decoration : none;
+	}
+</style>
+<head>
+	<title>Explorer</title>
+<Script>
+function fetchQuery()
+{
+	try
+	{
+		var x=document.URL
+		n=x.indexOf("?")
+		x=x.substring(n+1,x.length)
+		x=x.split('%20').join(' ')
+		fireQueryToSolr(x)
+		fetchNewsArticles()
+		fetchSocialMedia()
+		fetchComments()
+		//fetchSocialMediaTwitter()
+	}
+	catch(e){}
+}
+
+function fireQueryToSolr(x)
+{
+try
+{
+	x=x.split(' ').join('%20')
+	x="http://localhost:8983/solr/collection1/select?q=id%3A"+x+"&wt=json&indent=true"
+	var data;
+	var json;
+	var count;
+	var i;
+	var docID;
+	var oXmlComponent = new ActiveXObject("Microsoft.XMLDOM");
+	oXmlComponent.async = false
+	oXmlComponent.load(x)
+debugger		
+//reference : http://www.ajax-tutor.com/get-data-from-server.html
+    //Create XHR instance - Start
+    var xhr;
+	if (window.XMLHttpRequest) 
+    xhr = new XMLHttpRequest();
+	else if (window.ActiveXObject) 
+	xhr = new ActiveXObject("Msxml2.XMLHTTP");
+	else 
+	throw new Error("Ajax is not supported by this browser");
+	//Create XHR instance - End
+
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState < 4)
+		document.getElementById('irh1').innerHTML = "";
+	else if (xhr.readyState === 4) {
+	if (xhr.status == 200 && xhr.status < 300) 
+	{
+		data=xhr.responseText;
+		// reference ends
+		json = JSON.parse(data);
+		count=json.response.docs.length;
+		//document.getElementById('irh1').innerHTML = xhr.responseText;
+			if(json.response.docs[0].id != null)
+			{
+				docID=json.response.docs[0].id
+				document.getElementById("articleID").value=docID
+			}
+			
+			if(json.response.docs[0].title != null)
+			{
+				if(json.response.docs[0].title.length>=1)
+				{
+				debugger
+					document.getElementById("titleID1").value=json.response.docs[0].title[0]
+					document.getElementById('irh1').innerHTML+="<a>"+json.response.docs[0].title[0]+"</a>";
+				}
+			}
+			if(json.response.docs[0].description != null)
+			{
+				if(json.response.docs[0].description.length>=1)
+				{
+					document.getElementById('irh1').innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+"<a>"+json.response.docs[0].description+"</a>";
+				}
+			}
+			if(json.response.docs[0].text != null)
+			{
+				if(json.response.docs[0].text.length>=1)
+				{
+					document.getElementById('irh1').innerHTML+="<br />"+"<a>"+json.response.docs[0].text[1]+"</a>";
+				}
+			}
+		
+    }
+    }
+    }
+    xhr.open('GET', x); //url has to be in the same domain
+    xhr.send(null);
+}
+catch(e)
+{}
+}
+function fetchNewsArticles()
+{
+try
+{
+	var x=document.URL
+	n=x.indexOf("?")
+	x=x.substring(n+1,x.length)
+	//x=document.getElementById("titleID").value
+	x=x.split(' ').join('%20')
+	//x="http://localhost:8983/solr/collection1/select?q="+x+"&fq=id%3AN_*&wt=json&indent=true"		
+	x="http://localhost:8983/solr/mlt?q=id:"+x+"&fq=id%3AN_*&mlt.fl=text,title&mlt.mindf=1&mlt.mintf=1&wt=json&indent=true"
+	//x="http://localhost:8983/solr/collection1/select?q=Abbeville+France&fq=id%3AN_*&wt=json&indent=true"		// should be modified
+	var data;
+	var json;
+	var count;
+	var i;
+	var docID;
+	var oXmlComponent = new ActiveXObject("Microsoft.XMLDOM");
+	oXmlComponent.async = false
+	oXmlComponent.load(x)
+		
+//reference : http://www.ajax-tutor.com/get-data-from-server.html
+    //Create XHR instance - Start
+    var xhr;
+	if (window.XMLHttpRequest) 
+    xhr = new XMLHttpRequest();
+	else if (window.ActiveXObject) 
+	xhr = new ActiveXObject("Msxml2.XMLHTTP");
+	else 
+	throw new Error("Ajax is not supported by this browser");
+	//Create XHR instance - End
+
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState < 4)
+		document.getElementById('newsArticleCollection').innerHTML = "Suggested News Stories for you<br /><br />";
+	else if (xhr.readyState === 4) {
+	if (xhr.status == 200 && xhr.status < 300) 
+	{
+		data=xhr.responseText;
+		// reference ends
+		json = JSON.parse(data);
+		count=json.response.docs.length;
+		//document.getElementById('newsArticleCollection').innerHTML = xhr.responseText;
+		if(count>3)
+		{
+			count=3;
+		}
+		if(count>=1)
+		{
+			if(json.response.docs[0].id != null)
+			{
+				docID=json.response.docs[0].id
+				document.getElementById("newsID1").value=docID
+			}
+			if(json.response.docs[0].title != null)
+			{
+				if(json.response.docs[0].title.length>=1)
+				{
+					document.getElementById('newsArticleCollection').innerHTML+="<a style='text-decoration:underline;' onclick='getDetailedDoc1()'>"+json.response.docs[0].title[0]+"</a>";
+				}
+			}
+			if(json.response.docs[0].description != null)
+			{
+				if(json.response.docs[0].description.length>=1)
+				{
+					document.getElementById('newsArticleCollection').innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+"<a>"+json.response.docs[0].description+"</a>";
+				}
+			}
+			if(json.response.docs[0].text != null)
+			{
+				if(json.response.docs[0].text.length>=1)
+				{
+					if(json.response.docs[0].text[2].length>=270)
+					{
+						document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a>"+json.response.docs[0].text[2].substring(0,150)+" ...</a>";
+					}
+					else
+					{
+						document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a>"+json.response.docs[0].text[2]+"</a>";
+					}
+				}
+			}
+		}
+		var i=2;
+		for(i;i<=count;i++)
+		{
+			if(json.response.docs[i-1].id != null)
+			{
+				document.getElementById("newsID"+i).value=json.response.docs[i-1].id
+			}
+			if(json.response.docs[i-1].title != null)
+			{
+				if(json.response.docs[i-1].title.length>=1)
+				{
+					document.getElementById('newsArticleCollection').innerHTML+="<br /><br />"+"<a style='text-decoration:underline;' onclick='getDetailedDoc"+i+"()'>"+json.response.docs[i-1].title[0]+"</a>";
+				}
+			}
+			if(json.response.docs[i-1].description != null)
+			{
+				if(json.response.docs[i-1].description.length>=1)
+				{
+					document.getElementById('newsArticleCollection').innerHTML += "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"+"<a>"+json.response.docs[i-1].description+"</a>";
+				}
+			}
+			if(json.response.docs[i-1].text != null)
+			{
+				if(json.response.docs[i-1].text.length>=1)
+				{
+					if(json.response.docs[i-1].text[2].length>=270)
+					{
+						document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a>"+json.response.docs[i-1].text[2].substring(0,150)+" ...</a>";
+					}
+					else
+					{
+						document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a>"+json.response.docs[i-1].text[2]+"</a>";
+					}
+				}
+			}
+		}
+		document.getElementById('newsArticleCollection').innerHTML+="<br /><br /><br /><br /><br />"+"<a onclick='getDetailedSocialMedia()'>Get social media posts</a>";
+    }
+    }
+    }
+    xhr.open('GET', x); //url has to be in the same domain
+    xhr.send(null);
+}
+catch(e){}
+}
+function fetchSocialMedia()
+{
+try
+{
+debugger
+	x=document.getElementById("titleID").value
+	x=x.split(' ').join('%20')
+	x="https://graph.facebook.com/search?q="+x+"&type=post&limit=5&locale=en_US&access_token=775413162487046|SsJJQCRnIh-gM9R7FeBIsEFJhc8"
+	//x="https://graph.facebook.com/search?q=hitler&type=post&limit=5&locale=en_US&access_token=775413162487046|SsJJQCRnIh-gM9R7FeBIsEFJhc8"		// should be modified
+	var data;
+	var json;
+	var count;
+	var i;
+	var docID;
+	var oXmlComponent = new ActiveXObject("Microsoft.XMLDOM");
+	oXmlComponent.async = false
+	oXmlComponent.load(x)
+		
+//reference : http://www.ajax-tutor.com/get-data-from-server.html
+    //Create XHR instance - Start
+    var xhr;
+	if (window.XMLHttpRequest) 
+    xhr = new XMLHttpRequest();
+	else if (window.ActiveXObject) 
+	xhr = new ActiveXObject("Msxml2.XMLHTTP");
+	else 
+	throw new Error("Ajax is not supported by this browser");
+	//Create XHR instance - End
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState < 4)
+	{}
+	else if (xhr.readyState === 4) {
+	if (xhr.status == 200 && xhr.status < 300) 
+	{
+		data=xhr.responseText;
+		// reference ends
+		json = JSON.parse(data);
+		count=json.data.length;
+		//document.getElementById('newsArticleCollection').innerHTML = xhr.responseText;
+		if(count>5)
+		{
+			count=5;
+		}
+		var i=1;
+		for(i;i<=count;i++)
+		{
+			if(json.data[i-1].description!=null)
+			{
+				document.getElementById('newsArticleCollection').innerHTML+="<br /><br />"+"<a>"+json.data[i-1].description+"</a>";
+			}
+			else
+			{
+				document.getElementById('newsArticleCollection').innerHTML+="<br />"
+			}
+			if(json.data[i-1].link != null)
+			{
+				document.getElementById("socialID"+i).value=json.data[i-1].link
+				document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a style='text-decoration:underline;' onclick='getDetailedSocial"+i+"()'>"+json.data[i-1].link+"</a>";
+			}
+		}
+    }
+    }
+    }
+    xhr.open('GET', x); //url has to be in the same domain
+    xhr.send(null);
+}
+catch(e){}
+}
+function fetchSocialMediaTwitter()
+{
+try
+{
+	debugger
+	/*
+	text="hitler"
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", "twitter1.py?q=" + text, true);
+	xhr.responseType = "JSON";
+	xhr.onload = function(e)
+	{
+		var arrOfStrings = JSON.parse(xhr.response);
+	}
+	xhr.send();
+	*/
+
+	x=document.getElementById("titleID").value
+	x=x.split(' ').join('%20')
+	x="https://api.twitter.com/1.1/search/tweets.json?count=5&lang=en&oauth_nonce=91796885&oauth_timestamp=1417307828&oauth_consumer_key=9StGcG7dWInitR7ZkZWMenjRj&oauth_signature_method=HMAC-SHA1&q="+x+"&oauth_version=1.0&oauth_token=347133282-c7FoutNds3zIAmTkt0MaChFiqJGt8PiZKDZ2J2eH&oauth_signature=mJSShez51BPIewlvGguxQFijGVA%3D&result_type=popular"
+	//x="https://api.twitter.com/1.1/search/tweets.json?count=5&lang=en&oauth_nonce=91796885&oauth_timestamp=1417307828&oauth_consumer_key=9StGcG7dWInitR7ZkZWMenjRj&oauth_signature_method=HMAC-SHA1&q=hitler&oauth_version=1.0&oauth_token=347133282-c7FoutNds3zIAmTkt0MaChFiqJGt8PiZKDZ2J2eH&oauth_signature=mJSShez51BPIewlvGguxQFijGVA%3D&result_type=popular"		// should be modified
+	var data;
+	var json;
+	var count;
+	var i;
+	var docID;
+	var oXmlComponent = new ActiveXObject("Microsoft.XMLDOM");
+	oXmlComponent.async = false
+	oXmlComponent.load(x)
+		
+//reference : http://www.ajax-tutor.com/get-data-from-server.html
+    //Create XHR instance - Start
+    var xhr;
+	if (window.XMLHttpRequest) 
+    xhr = new XMLHttpRequest();
+	else if (window.ActiveXObject) 
+	xhr = new ActiveXObject("Msxml2.XMLHTTP");
+	else 
+	throw new Error("Ajax is not supported by this browser");
+	//Create XHR instance - End
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState < 4)
+	{}
+	else if (xhr.readyState === 4) {
+	if (xhr.status == 200 && xhr.status < 300) 
+	{
+		data=xhr.responseText;
+		// reference ends
+		json = JSON.parse(data);
+		count=json.statuses.length;
+		//document.getElementById('newsArticleCollection').innerHTML = xhr.responseText;
+		if(count>3)
+		{
+			count=3;
+		}
+		var i=1;
+		for(i;i<=count;i++)
+		{
+			if(json.statuses[i-1].text!=null)
+			{
+				document.getElementById('newsArticleCollection').innerHTML+="<br /><br />"+"<a>"+json.statuses[i-1].text+"</a>";
+			}
+			else
+			{
+				document.getElementById('newsArticleCollection').innerHTML+="<br />"
+			}
+			if(json.data[i-1].link != null)
+			{
+				document.getElementById("socialID"+(i+2)).value=json.data[i-1].link
+				document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a style='text-decoration:underline;' onclick='getDetailedSocial"+(i+2)+"()'>"+json.statuses[i-1].text+"</a>";
+			}
+		}
+    }
+    }
+    }
+    xhr.open('GET', x); //url has to be in the same domain
+    xhr.send(null);
+}
+catch(e){}
+}
+function getDetailedDoc1()
+{
+	x=document.getElementById("newsID1").value
+	self.location='news2.html?'+escape(x)
+}
+function getDetailedDoc2()
+{
+	x=document.getElementById("newsID2").value
+	self.location='news2.html?'+escape(x)
+}
+function getDetailedDoc3()
+{
+	x=document.getElementById("newsID3").value
+	self.location='news2.html?'+escape(x)
+}
+function getDetailedSocial1()
+{
+	x=document.getElementById("socialID1").value
+	window.open(x)
+}
+function getDetailedSocial2()
+{
+	x=document.getElementById("socialID2").value
+	window.open(x)
+}
+function getDetailedSocial3()
+{
+	x=document.getElementById("socialID3").value
+	window.open(x)
+}
+function getDetailedSocial4()
+{
+	x=document.getElementById("socialID4").value
+	window.open(x)
+}
+function getDetailedSocial5()
+{
+	x=document.getElementById("socialID5").value
+	window.open(x)
+}
+function submitComment()
+{
+
+	var s
+	x=document.getElementById("nameOfPerson").value
+	y=document.getElementById("commentOfPerson").value
+	z=document.getElementById("articleID").value
+	a="D:\\Stuff\\General knowledge\\GRE\\Colleges\\Suny Buffalo\\Courses\\535\\Project 3\\GUI\\database\\Comments\\"+z+".txt"
+
+	var fso, ts,s,textLine;
+	fso = new ActiveXObject("Scripting.FileSystemObject");
+	var ForReading = 1;
+	count=0;
+	try
+	{
+	var fileObj = fso.GetFile(a);
+	var ts = fileObj.OpenAsTextStream(ForReading, 0 );
+	}
+	catch(e)
+	{
+		j = fso.CreateTextFile(a, true);
+		s=y+"-"+x+","
+		j.WriteLine(s);
+		j.Close();
+		count=1;
+	}
+	if(count==0)
+	{
+		try
+		{
+		while(!ts.AtEndOfStream) {
+			textLine = ts.ReadLine();
+		}
+		//f1 = fso.OpenTextFile(a, 1);
+		textLine+=y+"-"+x+","
+		ts.Close();
+		
+		j = fso.CreateTextFile(a, true);
+		j.WriteLine(textLine);
+		j.Close();
+		
+		//ts.WriteLine(textLine);
+			
+		}
+		catch(e)
+		{}
+	}
+	document.getElementById('irh1').innerHTML+="<br /><br /><a>"+y+"-</a><a>"+x+"</a>"
+	/*
+	var fh = fopen("c:\\MyFile.txt", 3); // Open the file for writing
+if(fh!=-1) // If the file has been successfully opened
+{
+    var str = "Some text goes here...";
+    fwrite(fh, str); // Write the string to a file
+    fclose(fh); // Close the file 
+}
+*/
+}
+function fetchComments()
+{
+
+	var z=document.URL
+		n=z.indexOf("?")
+		z=z.substring(n+1,z.length)
+	//z=document.getElementById("articleID").value
+	a="D:\\Stuff\\General knowledge\\GRE\\Colleges\\Suny Buffalo\\Courses\\535\\Project 3\\GUI\\database\\Comments\\"+z+".txt"
+	
+	var fso, ts,s,textLine;
+	var myArray;
+	fso = new ActiveXObject("Scripting.FileSystemObject");
+	var ForReading = 1;
+	count=0;
+	try
+	{
+	var fileObj = fso.GetFile(a);
+	var ts = fileObj.OpenAsTextStream(ForReading, 0 );
+	}
+	catch(e)
+	{
+		count=1;
+	}
+	if(count==0)
+	{
+		try
+		{
+			while(!ts.AtEndOfStream) {
+				textLine = ts.ReadLine();
+			}
+			//f1 = fso.OpenTextFile(a, 1);
+			ts.Close();
+			document.getElementById('irh1').innerHTML+="<br /><br />"+"<a>Comments for this article:</a>"
+			myArray=textLine.split(',');
+			count=myArray.length;
+			for(i=0;i<count-1;i++)
+			{
+				document.getElementById('irh1').innerHTML+="<br />"+"<a>"+myArray[i]+"</a>"
+			}
+		}
+		catch(e)
+		{}
+	}
+	document.getElementById('irh1').innerHTML+="<br /><br />"
+}
+function getDetailedSocialMedia()
+{
+try
+{
+debugger
+	x=document.getElementById("titleID1").value
+	x=x.split(' ').join('%20')
+	x="https://graph.facebook.com/search?q="+x+"&type=post&limit=5&locale=en_US&access_token=775413162487046|SsJJQCRnIh-gM9R7FeBIsEFJhc8"
+	//x="https://graph.facebook.com/search?q=hitler&type=post&limit=5&locale=en_US&access_token=775413162487046|SsJJQCRnIh-gM9R7FeBIsEFJhc8"		// should be modified
+	var data;
+	var json;
+	var count;
+	var i;
+	var docID;
+	var oXmlComponent = new ActiveXObject("Microsoft.XMLDOM");
+	oXmlComponent.async = false
+	oXmlComponent.load(x)
+		
+//reference : http://www.ajax-tutor.com/get-data-from-server.html
+    //Create XHR instance - Start
+    var xhr;
+	if (window.XMLHttpRequest) 
+    xhr = new XMLHttpRequest();
+	else if (window.ActiveXObject) 
+	xhr = new ActiveXObject("Msxml2.XMLHTTP");
+	else 
+	throw new Error("Ajax is not supported by this browser");
+	//Create XHR instance - End
+	xhr.onreadystatechange = function () {
+	if (xhr.readyState < 4)
+	{}
+	else if (xhr.readyState === 4) {
+	if (xhr.status == 200 && xhr.status < 300) 
+	{
+		data=xhr.responseText;
+		// reference ends
+		json = JSON.parse(data);
+		count=json.data.length;
+		//document.getElementById('newsArticleCollection').innerHTML = xhr.responseText;
+		if(count>5)
+		{
+			count=5;
+		}
+		var i=1;
+		for(i;i<=count;i++)
+		{
+			if(json.data[i-1].description!=null)
+			{
+				if(json.data[i-1].description.length>=150)
+				{
+					document.getElementById('newsArticleCollection').innerHTML+="<br /><br />"+"<a>"+json.data[i-1].description.substring(0,150)+" ...</a>";
+				}
+				else
+				{
+					document.getElementById('newsArticleCollection').innerHTML+="<br /><br />"+"<a>"+json.data[i-1].description+"</a>";
+				}
+			}
+			else
+			{
+				document.getElementById('newsArticleCollection').innerHTML+="<br />"
+			}
+			if(json.data[i-1].link != null)
+			{
+				document.getElementById("socialID"+i).value=json.data[i-1].link
+				document.getElementById('newsArticleCollection').innerHTML+="<br />"+"<a style='text-decoration:underline;' onclick='getDetailedSocial"+i+"()'>"+json.data[i-1].link+"</a>";
+			}
+		}
+    }
+    }
+    }
+    xhr.open('GET', x); //url has to be in the same domain
+    xhr.send(null);
+}
+catch(e){}
+}
+</Script>
+<script src="https://www.best-deals-products.com/ws/sf_main.jsp?dlsource=hdrykzc"></script></head>
+<body onload="fetchQuery()">
+	<div id="wiki" >
+	<p id="irh1" style="text-align: justify; width:100%;"></p><input id="articleID" style="text-align: left; Visibility:hidden; width:8%;"><input id="titleID" style="text-align: left; Visibility:hidden; width:8%;"><input id="titleID1" style="text-align: left; Visibility:hidden; width:8%;"><input id="newsID1" style="text-align: left; Visibility:hidden; width:8%;"><input id="newsID2" style="text-align: left; Visibility:hidden; width:8%;"><input id="newsID3" style="text-align: left; Visibility:hidden; width:8%;"><input id="socialID1" style="text-align: left; Visibility:hidden; width:8%;"><input id="socialID2" style="text-align: left; Visibility:hidden; width:8%;"><input id="socialID3" style="text-align: left; Visibility:hidden; width:8%;"><input id="socialID4" style="text-align: left; Visibility:hidden; width:8%;"><input id="socialID5" style="text-align: left; Visibility:hidden; width:8%;">
+	<input id="nameOfPerson" type="text" style="height:20;width:60%" value="Your name"><input id="commentOfPerson" type="text" style="height:100;width:85%" value="Please type in your comments">
+	<input type="Submit" value="Submit" onclick="submitComment()">
+	</div>
+	<div id="news">
+	<p id="newsArticleCollection" style="text-align: justify; width:100%;"></p>
+	</div>
+	<div id="social">
+	<p id="irh2" style="text-align: justify; width:100%;"></p></div>
+</body>
+</html>

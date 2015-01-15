@@ -1,0 +1,7 @@
+http://localhost:8983/solr/mlt?q=id:W_1&fq=id%3AN_*&mlt.fl=text,title&mlt.mindf=1&mlt.mintf=1
+
+http://localhost:8983/solr/collection1/suggest?q=fra&wt=json
+
+http://localhost:8983/solr/spell?q=frakn&spellcheck=true&spellcheck.collate=true&spellcheck.build=true
+
+http://localhost:8983/solr/collection1/select?q=lawyer&hl=true&hl.fl=text&mlt=true&mlt.fl=text

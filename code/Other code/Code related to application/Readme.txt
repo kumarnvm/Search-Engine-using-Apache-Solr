@@ -1,0 +1,1 @@
+The code to show Solr data in GUI, API data in GUI, etc. is all written in javascript in these html files
